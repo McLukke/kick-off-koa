@@ -1,22 +1,15 @@
 var koa = require('koa');
 var app = new koa();
+var parse = require('co-body');
 
 app.use(function *(next) {
-  if (this.path !== '/') return yield next;
+  if (this.method !== 'POST') return yield next;
 
-  this.body = 'hello koa';
-});
+  var body = yield parse(this, { limit: '1kb' });
 
-app.use(function *(next) {
-  if (this.path !== '/404') return yield next;
+  if (!body.name) this.throw(400, 'name required');
 
-  this.body = 'page not found';
-});
-
-app.use(function *(next) {
-  if (this.path !== '/500') return yield next;
-
-  this.body = 'internal server error';
+  this.body = body.name.toUpperCase();
 });
 
 app.listen(process.argv[2]);
