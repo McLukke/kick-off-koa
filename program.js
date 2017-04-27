@@ -1,24 +1,12 @@
 var koa = require('koa');
 var app = new koa();
 
-app.use(errorHandler());
+app.keys = ['secret', 'keys'];
 
 app.use(function* () {
-  if (this.path === '/error') throw new Error('ooops');
-  this.body = 'OK';
+  var times = ~~this.cookies.get('view', { signed: true }) + 1;
+  this.cookies.set('view', times, { signed: true });
+  this.body = `${times} views`;
 });
-
-function errorHandler() {
-  return function* (next) {
-    // try catch all downstream errors here
-    try {
-      yield next;
-    } catch (err) {
-      this.status = 500;
-      this.body = 'internal server error';
-    }
-  };
-}
-
 
 app.listen(process.argv[2]);
